@@ -11,7 +11,7 @@ export default function Home() {
   useEffect(() => {
   if (!chatResponse) return;
 
-  const eventSource = new EventSource('/api/observation/stream');
+  const eventSource = new EventSource('http://localhost:8081/v1/tools/observations/stream');
   let fullStream = `${chatResponse}\n`;
 
   const handleMessage = (event: MessageEvent) => {
@@ -24,7 +24,7 @@ export default function Home() {
       return;
     }
 
-    fullStream += `\n${data.chunk}`;
+    fullStream += `\n${data.description}`;
     setStreamResponse(fullStream);
   };
 
@@ -52,9 +52,9 @@ export default function Home() {
 
   try {
     setLoading(true);
-    const chatRes = await fetch(`/api/chat?prompt=${encodeURIComponent(input)}`);
+    const chatRes = await fetch(`http://localhost:8081/v1/same-to-same/chat?userPrompt=${encodeURIComponent(input)}`);
     const data = await chatRes.json();
-    setChatResponse(data.message || 'No response from /chat');
+    setChatResponse(data.text || 'No response from /chat');
     setLoading(false);
 
     
