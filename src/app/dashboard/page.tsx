@@ -108,7 +108,7 @@ return (
 
     <div className="row-start-1 col-start-2 bg-gray-200 rounded-md overflow-hidden mr-4">
       <iframe
-        srcDoc="<html><body style='margin:0;background-color:#e5e5e5;'></body></html>"
+        src="http://localhost:8080"
         className="w-full h-full"
       />
     </div>
