@@ -85,6 +85,12 @@ export default function Home() {
   <div className="relative flex-grow">
     <textarea
       ref={textAreaRef}
+       onKeyDown={(e) => {
+    if (!loading && e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  }}
       className="w-full h-full p-4 rounded-md border border-gray-300 dark:border-gray-700 resize-none text-sm font-mono bg-white"
       placeholder="Ask me anything..."
       value={`${chatLog}${chatLog ? '\n' : ''}User: ${input}`}
@@ -156,6 +162,12 @@ export default function Home() {
         >
           <textarea
             ref={textAreaRef}
+            onKeyDown={(e) => {
+              if (!loading && e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
             className="flex-grow w-full p-4 rounded-md border border-gray-300 dark:border-gray-700 resize-none text-sm font-mono bg-white"
             placeholder="Ask me anything..."
             value={`${chatLog}${chatLog ? '\n' : ''}User: ${input}`}
