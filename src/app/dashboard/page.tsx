@@ -74,13 +74,11 @@ export default function Home() {
     }
   };
 
-  // ✅ Expanded Layout
   if (expanded) {
     return (
       <div className="relative w-screen h-screen flex items-center justify-center bg-white p-6">
         
 
-        {/* Centered Chat */}
         <form onSubmit={handleSubmit} className="flex flex-col w-full max-w-2xl h-[80vh]">
   <div className="relative flex-grow">
     <textarea
@@ -106,7 +104,6 @@ export default function Home() {
       }}
     />
 
-    {/* Button placed relative to textarea */}
     <button
       onClick={() => setExpanded(false)}
       className="absolute -top-[35px] right-0 bg-gray-200 hover:bg-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-black shadow"
@@ -150,11 +147,9 @@ export default function Home() {
     );
   }
 
-  // ✅ Default Layout
   return (
     <div className="mt-[50px] font-sans w-screen h-[calc(100vh-100px)] grid grid-cols-[30%_70%] grid-rows-[70%_30%] p-4 gap-4">
 
-      {/* LEFT CHAT COLUMN */}
       <div className="row-span-2 col-start-1 h-full flex flex-col pb-4">
         <form
           onSubmit={handleSubmit}
@@ -215,7 +210,6 @@ export default function Home() {
         </form>
       </div>
 
-      {/* RIGHT-TOP IFRAME + EXPAND BUTTON */}
       <div className="row-start-1 col-start-2 relative mr-4">
         <button
           className="absolute -top-[35px] -left-0 text-black rounded-full w-8 h-8 flex items-center justify-center bg-transparent hover:bg-gray-200 transition-colors duration-200"
@@ -233,7 +227,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* RIGHT-BOTTOM SSE OUTPUT */}
       <div className="mr-4 mb-4 row-start-2 col-start-2 bg-gray-50 dark:bg-gray-800 p-4 border rounded-md text-sm whitespace-pre-wrap overflow-auto">
         {streamResponse || "Your response will appear here..."}
       </div>
