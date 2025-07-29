@@ -73,6 +73,7 @@ function Collapsed({
               }
             }}
             className="flex-grow w-full p-4 rounded-md border border-gray-300 dark:border-gray-700 resize-none text-sm font-mono bg-white overflow-auto"
+            style={{color:'red'}}
             placeholder="Ask me anything..."
             value={`${chatLog}${chatLog ? '\n' : ''}User: ${input}`}
             onChange={(e) => {
