@@ -228,9 +228,9 @@ export default function Home() {
     <AnimatePresence mode="wait">
       <motion.div
         key={expanded ? 'expanded' : 'collapsed'}
-        initial={{ x: direction === 'right' ? 300 : -300, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: direction === 'right' ? -300 : 300, opacity: 0 }}
+        initial={{ x: direction === 'right' ? -1000 : 1000, opacity: 1 }}
+        animate={{ x: 1, opacity: 1 }}  
+        exit={{ x: direction === 'right' ? 1 : 1, opacity: 0 }}
         transition={{ duration: 0.4 }}
         className={`w-full h-full ${
           expanded
