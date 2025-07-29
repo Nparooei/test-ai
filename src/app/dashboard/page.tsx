@@ -136,6 +136,7 @@ export default function Home() {
   const [direction, setDirection] = useState<'left' | 'right'>('right');
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
+
   useEffect(() => {
     if (textAreaRef.current) {
       textAreaRef.current.scrollTop = textAreaRef.current.scrollHeight;
@@ -145,7 +146,7 @@ export default function Home() {
   useEffect(() => {
     if (!chatLog) return;
 
-    const eventSource = new EventSource('/api/observation/stream');
+    const eventSource = new EventSource('http://localhost:8081/v1/tools/observations/stream');
     let fullStream = '';
 
     const handleMessage = (event: MessageEvent) => {
@@ -158,7 +159,7 @@ export default function Home() {
         return;
       }
 
-      fullStream += data.chunk;
+      fullStream += `\n${data.description}`;
       setStreamResponse(fullStream);
     };
 
@@ -187,9 +188,9 @@ export default function Home() {
     setStreamResponse('');
 
     try {
-      const res = await fetch(`/api/chat?prompt=${encodeURIComponent(prompt)}`);
-      const data = await res.json();
-      const reply = data.message || '[No response]';
+      const chatRes = await fetch(`http://localhost:8081/v1/same-to-same/chat?userPrompt=${encodeURIComponent(input)}`);
+      const data = await chatRes.json();
+      const reply = data.text || '[No response]';
       setChatLog(prev => `${prev}${prev ? '\n' : ''}${userEntry}\nBot: ${reply}`);
     } catch (err) {
       console.error(err);
