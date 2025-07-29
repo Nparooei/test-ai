@@ -1,5 +1,5 @@
 type SharedChatProps = {
-    textAreaRef: React.RefObject<HTMLTextAreaElement>;
+    textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
     input: string;
     chatLog: string;
     loading: boolean;
