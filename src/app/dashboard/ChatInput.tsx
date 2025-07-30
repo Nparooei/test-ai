@@ -12,14 +12,17 @@ function ChatInput({ textAreaRef, input, chatLog, onChange, onSubmit, loading }:
                         onSubmit(e);
                     }
                 }}
-                className="w-full h-full p-4 rounded-md border border-gray-300 dark:border-gray-700 resize-none text-sm font-mono bg-white"
+                className="w-full h-full p-4 rounded-md border border-gray-300 dark:border-gray-600 resize-none text-sm font-mono bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+
+
                 placeholder="Ask me anything..."
                 value={`${chatLog}${chatLog ? '\n' : ''}User: ${input}`}
                 onChange={onChange}
             />
             <button
                 type="submit"
-                className="mt-4 w-full h-12 bg-foreground text-background rounded-md font-medium text-sm hover:bg-[#383838] dark:hover:bg-[#ccc] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+                className="mt-4 w-full h-12 bg-blue-600 text-white dark:bg-blue-600 dark:text-white hover:bg-blue-700 dark:hover:bg-blue-700 rounded-md font-medium text-sm flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+
                 disabled={loading}
             >
                 {loading ? (
