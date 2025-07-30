@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatInput } from "./ChatInput";
 import { CollapsedProps, ExpandedProps } from "./types";
-
+import Alert from "@mui/material/Alert";
+import Slide from "@mui/material/Slide";
 
 function Expanded({
   textAreaRef,
@@ -41,14 +42,12 @@ function Expanded({
           setExpanded(false);
         }}
         className="absolute -top-[35px] right-0 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full w-8 h-8 flex items-center justify-center text-black dark:text-white shadow"
-
       >
         {"<"}
       </button>
     </div>
   );
 }
-
 
 function Collapsed({
   textAreaRef,
@@ -104,10 +103,9 @@ function Collapsed({
         </form>
       </div>
 
-      <div className="row-start-1 col-start-2 relative mr-4  ">
+      <div className="row-start-1 col-start-2 relative mr-4">
         <button
           className="absolute -top-[35px] -left-0 text-black dark:text-white rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-
           onClick={() => {
             setDirection('right');
             setExpanded(true);
@@ -116,7 +114,7 @@ function Collapsed({
         >
           {">"}
         </button>
-        <div className="bg-gray-200 rounded-md overflow-hidden w-full h-full">
+        <div className="bg-gray-200 dark:bg-gray-900 rounded-md overflow-hidden w-full h-full">
           <iframe src="http://localhost:8080" className="w-full h-full" />
         </div>
       </div>
@@ -128,7 +126,6 @@ function Collapsed({
   );
 }
 
-
 export default function Home() {
   const [input, setInput] = useState("");
   const [chatLog, setChatLog] = useState("");
@@ -136,8 +133,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [direction, setDirection] = useState<'left' | 'right'>('right');
+  const [error, setError] = useState<string | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
 
   useEffect(() => {
     if (textAreaRef.current) {
@@ -196,7 +193,8 @@ export default function Home() {
       setChatLog(prev => `${prev}${prev ? '\n' : ''}${userEntry}\nBot: ${reply}`);
     } catch (err) {
       console.error(err);
-      setChatLog(prev => `${prev}${prev ? '\n' : ''}${userEntry}\nBot: [Error calling API]`);
+      setError("Failed to contact the server. Please try again.");
+      setTimeout(() => setError(null), 3000);
     } finally {
       setLoading(false);
     }
@@ -204,6 +202,16 @@ export default function Home() {
 
   return (
     <div className="relative w-screen h-screen pt-[50px] pb-[50px] overflow-hidden">
+      {error && (
+        <Slide direction="down" in={!!error} mountOnEnter unmountOnExit>
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
+            <Alert severity="error" variant="filled">
+              {error}
+            </Alert>
+          </div>
+        </Slide>
+      )}
+
       <AnimatePresence mode="wait">
         <motion.div
           key={expanded ? 'expanded' : 'collapsed'}
