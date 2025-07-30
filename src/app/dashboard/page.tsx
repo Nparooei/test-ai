@@ -40,7 +40,8 @@ function Expanded({
           setDirection('left');
           setExpanded(false);
         }}
-        className="absolute -top-[35px] right-0 bg-gray-200 hover:bg-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-black shadow"
+        className="absolute -top-[35px] right-0 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full w-8 h-8 flex items-center justify-center text-black dark:text-white shadow"
+
       >
         {"<"}
       </button>
@@ -72,8 +73,7 @@ function Collapsed({
                 handleSubmit(e);
               }
             }}
-            className="flex-grow w-full p-4 rounded-md border border-gray-300 dark:border-gray-700 resize-none text-sm font-mono bg-white overflow-auto"
-            style={{color:'red'}}
+            className="flex-grow w-full p-4 rounded-md border border-gray-300 dark:border-gray-700 resize-none text-sm font-mono bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 overflow-auto"
             placeholder="Ask me anything..."
             value={`${chatLog}${chatLog ? '\n' : ''}User: ${input}`}
             onChange={(e) => {
@@ -89,7 +89,7 @@ function Collapsed({
           />
           <button
             type="submit"
-            className="mt-4 w-full h-12 bg-foreground text-background rounded-md font-medium text-sm hover:bg-[#383838] dark:hover:bg-[#ccc] flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+            className="mt-4 w-full h-12 bg-blue-600 text-white dark:bg-blue-600 dark:text-white hover:bg-blue-700 dark:hover:bg-blue-700 rounded-md font-medium text-sm flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? (
@@ -106,7 +106,8 @@ function Collapsed({
 
       <div className="row-start-1 col-start-2 relative mr-4  ">
         <button
-          className="absolute -top-[35px] -left-0 text-black rounded-full w-8 h-8 flex items-center justify-center bg-transparent hover:bg-gray-200 transition-colors duration-200"
+          className="absolute -top-[35px] -left-0 text-black dark:text-white rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+
           onClick={() => {
             setDirection('right');
             setExpanded(true);
