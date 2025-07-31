@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 ];
 
       for (const chunk of chunks) {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ description:chunk })}\n\n`));
         await new Promise((r) => setTimeout(r, 400)); // Simulate delay
       }
 

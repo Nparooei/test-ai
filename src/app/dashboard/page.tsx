@@ -1,173 +1,132 @@
 'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChatInput } from "./ChatInput";
-import { CollapsedProps, ExpandedProps } from "./types";
-import Alert from "@mui/material/Alert";
-import Slide from "@mui/material/Slide";
+import { useEffect, useMemo, useState } from 'react';
+import {
+  createEditor,
+  Descendant,
+  Text,
+} from 'slate';
+import { Slate, Editable, withReact } from 'slate-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import Alert from '@mui/material/Alert';
+import Slide from '@mui/material/Slide';
 import Collapse from '@mui/material/Collapse';
 
-
-function Expanded({
-  textAreaRef,
-  input,
-  chatLog,
-  loading,
-  handleSubmit,
-  setInput,
-  setExpanded,
-  setDirection,
-}: ExpandedProps) {
-  return (
-    <div className="relative w-full max-w-2xl h-[80vh] flex flex-col">
-      <ChatInput
-        textAreaRef={textAreaRef}
-        input={input}
-        chatLog={chatLog}
-        loading={loading}
-        onChange={(e) => {
-          const value = e.target.value;
-          const lastUserIndex = value.lastIndexOf('User: ');
-          if (lastUserIndex !== -1) {
-            const afterUser = value.substring(lastUserIndex + 6);
-            setInput(afterUser);
-          } else {
-            setInput('');
-          }
-        }}
-        onSubmit={handleSubmit}
-      />
-      <button
-        onClick={() => {
-          setDirection('left');
-          setExpanded(false);
-        }}
-        className="absolute -top-[35px] right-0 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full w-8 h-8 flex items-center justify-center text-black dark:text-white shadow"
-      >
-        {"<"}
-      </button>
-    </div>
-  );
+function renderLeaf({ attributes, children, leaf }: any) {
+  if (leaf.bold) {
+    children = <strong>{children}</strong>;
+  }
+  return <span {...attributes}>{children}</span>;
 }
 
-function Collapsed({
-  textAreaRef,
-  input,
-  chatLog,
-  loading,
-  handleSubmit,
-  setInput,
-  setExpanded,
-  setDirection,
-  streamResponse,
-}: CollapsedProps) {
-  return (
-    <>
-      <div className="row-span-2 col-start-1 h-full flex flex-col pb-4 overflow-hidden">
-        <form onSubmit={handleSubmit} className="flex flex-col flex-grow w-full">
-          <textarea
-            ref={textAreaRef}
-            onKeyDown={(e) => {
-              if (!loading && e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
-            className="flex-grow w-full p-4 rounded-md border border-gray-300 dark:border-gray-700 resize-none text-sm font-mono bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 overflow-auto"
-            placeholder="Ask me anything..."
-            value={`${chatLog}${chatLog ? '\n' : ''}User: ${input}`}
-            onChange={(e) => {
-              const value = e.target.value;
-              const lastUserIndex = value.lastIndexOf('User: ');
-              if (lastUserIndex !== -1) {
-                const afterUser = value.substring(lastUserIndex + 6);
-                setInput(afterUser);
-              } else {
-                setInput('');
-              }
-            }}
-          />
-          <button
-            type="submit"
-            className="mt-4 w-full h-12 bg-blue-600 text-white dark:bg-blue-600 dark:text-white hover:bg-blue-700 dark:hover:bg-blue-700 rounded-md font-medium text-sm flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
-            disabled={loading}
-          >
-            {loading ? (
-              <svg className="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-              </svg>
-            ) : (
-              'Send'
-            )}
-          </button>
-        </form>
-      </div>
+function decorate([node, path]: any) {
+  const ranges: any[] = [];
+  if (!Text.isText(node)) return ranges;
 
-      <div className="row-start-1 col-start-2 relative mr-4">
-        <button
-          className="absolute -top-[35px] -left-0 text-black dark:text-white rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-          onClick={() => {
-            setDirection('right');
-            setExpanded(true);
-          }}
-          aria-label="Expand"
-        >
-          {">"}
-        </button>
-        <div className="bg-gray-200 dark:bg-gray-900 rounded-md overflow-hidden w-full h-full">
-          <iframe src="http://localhost:8080" className="w-full h-full" />
-        </div>
-      </div>
+  const tokens = ['User:', 'Bot:'];
+  for (const token of tokens) {
+    const parts = node.text.split(token);
+    let offset = 0;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const start = offset + parts[i].length;
+      const end = start + token.length;
+      ranges.push({
+        anchor: { path, offset: start },
+        focus: { path, offset: end },
+        bold: true,
+      });
+      offset = end;
+    }
+  }
 
-      <div className="mr-4 mb-4 row-start-2 col-start-2 bg-gray-50 dark:bg-gray-800 p-4 border rounded-md text-sm whitespace-pre-wrap overflow-auto">
-        {streamResponse || "Your response will appear here..."}
-      </div>
-    </>
-  );
+  return ranges;
 }
+
+const initialValue: Descendant[] = [
+  {
+    type: 'paragraph',
+    children: [{ text: '' }],
+  },
+];
 
 export default function Home() {
-  const [input, setInput] = useState("");
-  const [chatLog, setChatLog] = useState("");
-  const [streamResponse, setStreamResponse] = useState("");
+  const editor = useMemo(() => withReact(createEditor()), []);
+  const [value, setValue] = useState<Descendant[]>(initialValue);
+  const [renderKey, setRenderKey] = useState(0); 
+  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [streaming, setStreaming] = useState(false);
+  const [streamBuffer, setStreamBuffer] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [direction, setDirection] = useState<'left' | 'right'>('right');
   const [error, setError] = useState<string | null>(null);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    if (textAreaRef.current) {
-      textAreaRef.current.scrollTop = textAreaRef.current.scrollHeight;
+  const insertParagraph = (text: string) => {
+    const newNode: Descendant = {
+      type: 'paragraph',
+      children: [{ text }],
+    };
+    setValue((prev) => {
+      const next = [...prev, newNode];
+      setRenderKey((k) => k + 1);
+      return next;
+    });
+  };
+
+  const handleSubmit = async () => {
+    const trimmed = input.trim();
+    if (!trimmed) return;
+
+    setLoading(true);
+    setInput('');
+    setStreamBuffer('');
+    insertParagraph(`User: ${trimmed}`);
+
+    try {
+      const res = await fetch(`/api/chat?prompt=${encodeURIComponent(input)}`);
+      const data = await res.json();
+      const botReply = data.text || '[No response]';
+      insertParagraph(`Bot: ${botReply}`);
+      setStreaming(true);
+    } catch {
+      insertParagraph('Bot: [error contacting server]');
+      setError('Failed to contact the server.');
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      setLoading(false);
     }
-  }, [chatLog, input]);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!loading && !streaming && e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
 
   useEffect(() => {
-    if (!chatLog) return;
+    if (!streaming) return;
 
-    const eventSource = new EventSource('http://localhost:8081/v1/tools/observations/stream');
-    let fullStream = '';
+    const eventSource = new EventSource('/api/observation/stream');
+    let accumulated = '';
 
     const handleMessage = (event: MessageEvent) => {
-      setLoading(true);
       const data = JSON.parse(event.data);
-
       if (data.done) {
-        setLoading(false);
         eventSource.close();
+        setStreaming(false);
+        setStreamBuffer((prev) => prev + '\n[Done]');
         return;
       }
 
-      fullStream += `\n${data.description}`;
-      setStreamResponse(fullStream);
+      accumulated += `\n${data.description}`;
+      setStreamBuffer(accumulated);
     };
 
     const handleError = () => {
-      setLoading(false);
+      setStreaming(false);
       eventSource.close();
-      setStreamResponse((prev) => prev + '\n[Stream error]');
+      setStreamBuffer((prev) => prev + '\n[stream error]');
     };
 
     eventSource.onmessage = handleMessage;
@@ -176,81 +135,100 @@ export default function Home() {
     return () => {
       eventSource.close();
     };
-  }, [chatLog]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const prompt = input.trim();
-    if (!prompt) return;
-
-    const userEntry = `User: ${prompt}`;
-    setInput('');
-    setLoading(true);
-    setStreamResponse('');
-
-    try {
-      const chatRes = await fetch(`http://localhost:8081/v1/same-to-same/chat?userPrompt=${encodeURIComponent(input)}`);
-      const data = await chatRes.json();
-      const reply = data.text || '[No response]';
-      setChatLog(prev => `${prev}${prev ? '\n' : ''}${userEntry}\nBot: ${reply}`);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to contact the server. Please try again.");
-      setTimeout(() => setError(null), 3000);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [streaming]);
 
   return (
     <div className="relative w-screen h-screen pt-[50px] pb-[50px] overflow-hidden">
       <Collapse in={!!error} mountOnEnter unmountOnExit>
         <Slide direction="down" in={!!error} mountOnEnter unmountOnExit>
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
-            <Alert severity="error" variant="filled">
-              {error}
-            </Alert>
+            <Alert severity="error" variant="filled">{error}</Alert>
           </div>
         </Slide>
-       </Collapse>
+      </Collapse>
 
       <AnimatePresence mode="wait">
         <motion.div
           key={expanded ? 'expanded' : 'collapsed'}
           initial={{ x: direction === 'right' ? -1000 : 1000, opacity: 1 }}
-          animate={{ x: 1, opacity: 1 }}
+          animate={{ x: 0, opacity: 1 }}
           exit={{ x: direction === 'right' ? 1 : 1, opacity: 0 }}
           transition={{ duration: 0.4 }}
-          className={`w-full h-full ${expanded
-              ? 'flex items-center justify-center p-6'
-              : 'p-4 font-sans grid grid-cols-[30%_70%] grid-rows-[70%_30%] gap-4'
-            }`}
+          className="w-full h-full flex"
         >
-          {expanded ? (
-            <Expanded
-              textAreaRef={textAreaRef}
-              input={input}
-              chatLog={chatLog}
-              loading={loading}
-              handleSubmit={handleSubmit}
-              setInput={setInput}
-              setExpanded={setExpanded}
-              setDirection={setDirection}
+          <div className={`flex flex-col pb-4 overflow-hidden transition-all duration-300 ${expanded ? 'w-[60%] mx-auto' : 'w-[30%] ml-4'}`}>
+            <Slate key={renderKey} editor={editor} initialValue={value}>
+              <Editable
+                decorate={decorate}
+                renderLeaf={renderLeaf}
+                readOnly={true}
+                className="flex-grow w-full p-4 rounded-md border border-gray-300 dark:border-gray-700 resize-none text-sm font-mono bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-auto"
+              />
+            </Slate>
+
+            <textarea
+              placeholder="Ask me anything..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={loading || streaming}
+              className="mt-4 w-full h-20 p-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm font-mono bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none disabled:opacity-50"
             />
-          ) : (
-            <Collapsed
-              textAreaRef={textAreaRef}
-              input={input}
-              chatLog={chatLog}
-              loading={loading}
-              handleSubmit={handleSubmit}
-              setInput={setInput}
-              setExpanded={setExpanded}
-              setDirection={setDirection}
-              streamResponse={streamResponse}
-            />
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading || streaming}
+              className="mt-2 h-12 w-full bg-blue-600 text-white hover:bg-blue-700 rounded-md font-medium text-sm flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {(loading || streaming) ? (
+                <svg className="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+              ) : 'Send'}
+            </button>
+          </div>
+
+          {!expanded && (
+            <div className="ml-[20px] w-[70%] pr-4 grid grid-rows-[70%_30%] gap-4 mb-[33px]">
+              <div className="relative">
+                <button
+                  className="absolute -top-[35px] -left-0 text-black dark:text-white rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+                  onClick={() => {
+                    setDirection('right');
+                    setExpanded(true);
+                  }}
+                  aria-label="Expand"
+                >
+                  {">"}
+                </button>
+                <div className="bg-gray-200 dark:bg-gray-900 rounded-md overflow-hidden w-full h-full">
+                  <iframe src="http://localhost:8080" className="w-full h-full" />
+                </div>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 border rounded-md text-sm whitespace-pre-wrap overflow-auto">
+                {streamBuffer || 'Your response will appear here...'}
+              </div>
+            </div>
           )}
+
+          
         </motion.div>
+        {expanded && (
+            <div className="absolute top-[10px]  right-[20%]">
+              <button
+                className="text-black dark:text-white rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+                onClick={() => {
+                  setDirection('left');
+                  setExpanded(false);
+                }}
+                aria-label="Collapse"
+              >
+                {"<"}
+              </button>
+            </div>
+          )}
       </AnimatePresence>
     </div>
   );
