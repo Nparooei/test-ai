@@ -181,7 +181,7 @@ export default function Home() {
     if (!prompt) return;
 
     const userEntry = `User: ${prompt}`;
-    setInput('');
+    
     setLoading(true);
     setStreamResponse('');
 
@@ -198,8 +198,9 @@ export default function Home() {
       setChatLog(prev => `${prev}${prev ? '\n' : ''}${userEntry}\nBot: ${reply}`);
 
     } catch (err) {
+      setInput('');
       console.error(err);
-      setError("Failed to contact the server. Please try again.");
+      setError(err.message || 'An error occurred while processing your request.');
       setTimeout(() => setError(null), 3000);
 
     } finally {
