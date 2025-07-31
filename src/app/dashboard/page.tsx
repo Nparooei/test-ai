@@ -194,7 +194,7 @@ export default function Home() {
       }
 
       const data = await chatRes.json();
-      const reply = data.message || '[No response]';
+      const reply = data.text || '[No response]';
       setChatLog(prev => `${prev}${prev ? '\n' : ''}${userEntry}\nBot: ${reply}`);
 
     } catch (err) {
