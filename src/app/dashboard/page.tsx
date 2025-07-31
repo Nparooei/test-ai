@@ -194,14 +194,16 @@ export default function Home() {
       }
 
       const data = await chatRes.json();
-      const reply = data.text || '[No response]';
+      const reply = data.message || '[No response]';
       setChatLog(prev => `${prev}${prev ? '\n' : ''}${userEntry}\nBot: ${reply}`);
 
     } catch (err) {
       setInput('');
       console.error(err);
-      setError(err.message || 'An error occurred while processing your request.');
-      setTimeout(() => setError(null), 3000);
+      const reply = err.message || '[No response]';
+      setChatLog(prev => `${prev}${prev ? '\n' : ''}${userEntry}\nBot: ${reply}`);
+      //setError(err.message || 'An error occurred while processing your request.');
+      //setTimeout(() => setError(null), 3000);
 
     } finally {
       setLoading(false);
