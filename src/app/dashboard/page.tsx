@@ -6,6 +6,8 @@ import { ChatInput } from "./ChatInput";
 import { CollapsedProps, ExpandedProps } from "./types";
 import Alert from "@mui/material/Alert";
 import Slide from "@mui/material/Slide";
+import Collapse from '@mui/material/Collapse';
+
 
 function Expanded({
   textAreaRef,
@@ -202,7 +204,7 @@ export default function Home() {
 
   return (
     <div className="relative w-screen h-screen pt-[50px] pb-[50px] overflow-hidden">
-      {error && (
+      <Collapse in={!!error} mountOnEnter unmountOnExit>
         <Slide direction="down" in={!!error} mountOnEnter unmountOnExit>
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
             <Alert severity="error" variant="filled">
@@ -210,7 +212,7 @@ export default function Home() {
             </Alert>
           </div>
         </Slide>
-      )}
+       </Collapse>
 
       <AnimatePresence mode="wait">
         <motion.div
