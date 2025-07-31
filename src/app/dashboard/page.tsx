@@ -64,67 +64,64 @@ function Collapsed({
 }: CollapsedProps) {
   return (
     <>
-      <div className="row-span-2 col-start-1 h-full flex flex-col pb-4 overflow-hidden">
-        <form onSubmit={handleSubmit} className="flex flex-col flex-grow w-full">
-          <textarea
-            ref={textAreaRef}
-            onKeyDown={(e) => {
-              if (!loading && e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
-            className="flex-grow w-full p-4 rounded-md border border-gray-300 dark:border-gray-700 resize-none text-sm font-mono bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 overflow-auto"
-            placeholder="Ask me anything..."
-            value={`${chatLog}${chatLog ? '\n' : ''}User: ${input}`}
-            onChange={(e) => {
-              const value = e.target.value;
-              const lastUserIndex = value.lastIndexOf('User: ');
-              if (lastUserIndex !== -1) {
-                const afterUser = value.substring(lastUserIndex + 6);
-                setInput(afterUser);
-              } else {
-                setInput('');
-              }
-            }}
-          />
-          <button
-            type="submit"
-            className="mt-4 w-full h-12 bg-blue-600 text-white dark:bg-blue-600 dark:text-white hover:bg-blue-700 dark:hover:bg-blue-700 rounded-md font-medium text-sm flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
-            disabled={loading}
-          >
-            {loading ? (
-              <svg className="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-              </svg>
-            ) : (
-              'Send'
-            )}
-          </button>
-        </form>
-      </div>
+  <div className="row-span-2 col-start-1 h-full flex flex-col pb-4 overflow-hidden">
+    <form onSubmit={handleSubmit} className="flex flex-col flex-grow w-full">
+      <textarea
+        ref={textAreaRef}
+        onKeyDown={(e) => {
+          if (!loading && e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit(e);
+          }
+        }}
+        className="flex-grow w-full p-4 rounded-md border border-gray-300 dark:border-gray-700 resize-none text-sm font-mono bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 overflow-auto"
+        placeholder="Ask me anything..."
+        value={`${chatLog}${chatLog ? '\n' : ''}User: ${input}`}
+        onChange={(e) => {
+          const value = e.target.value;
+          const lastUserIndex = value.lastIndexOf('User: ');
+          if (lastUserIndex !== -1) {
+            const afterUser = value.substring(lastUserIndex + 6);
+            setInput(afterUser);
+          } else {
+            setInput('');
+          }
+        }}
+      />
+      <button
+        type="submit"
+        className="mt-4 w-full h-12 bg-blue-600 text-white dark:bg-blue-600 dark:text-white hover:bg-blue-700 dark:hover:bg-blue-700 rounded-md font-medium text-sm flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+        disabled={loading}
+      >
+        {loading ? (
+          <svg className="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+          </svg>
+        ) : (
+          'Send'
+        )}
+      </button>
+    </form>
+  </div>
 
-      <div className="row-start-1 col-start-2 relative mr-4">
-        <button
-          className="absolute -top-[35px] -left-0 text-black dark:text-white rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-          onClick={() => {
-            setDirection('right');
-            setExpanded(true);
-          }}
-          aria-label="Expand"
-        >
-          {">"}
-        </button>
-        <div className="bg-gray-200 dark:bg-gray-900 rounded-md overflow-hidden w-full h-full">
-          <iframe src="http://localhost:8080" className="w-full h-full" />
-        </div>
-      </div>
+  <div className="row-span-2 col-start-2 relative mr-4 pb-[15px]">
+    <button
+      className="absolute -top-[35px] -left-0 text-black dark:text-white rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+      onClick={() => {
+        setDirection('right');
+        setExpanded(true);
+      }}
+      aria-label="Expand"
+    >
+      {">"}
+    </button>
+    <div className="bg-gray-200 dark:bg-gray-900 rounded-md overflow-hidden w-full h-full">
+      <iframe src="http://localhost:8080" className="w-full h-full" />
+    </div>
+  </div>
+</>
 
-      <div className="mr-4 mb-4 row-start-2 col-start-2 bg-gray-50 dark:bg-gray-800 p-4 border rounded-md text-sm whitespace-pre-wrap overflow-auto">
-        {streamResponse || "Your response will appear here..."}
-      </div>
-    </>
   );
 }
 
@@ -147,7 +144,7 @@ export default function Home() {
   useEffect(() => {
     if (!chatLog) return;
 
-    const eventSource = new EventSource('http://localhost:8081/v1/tools/observations/stream');
+    //const eventSource = new EventSource('http://localhost:8081/v1/tools/observations/stream');
     let fullStream = '';
 
     const handleMessage = (event: MessageEvent) => {
@@ -156,7 +153,7 @@ export default function Home() {
 
       if (data.done) {
         setLoading(false);
-        eventSource.close();
+        //eventSource.close();
         return;
       }
 
@@ -166,15 +163,15 @@ export default function Home() {
 
     const handleError = () => {
       setLoading(false);
-      eventSource.close();
+      //eventSource.close();
       setStreamResponse((prev) => prev + '\n[Stream error]');
     };
 
-    eventSource.onmessage = handleMessage;
-    eventSource.onerror = handleError;
+    //eventSource.onmessage = handleMessage;
+    //eventSource.onerror = handleError;
 
     return () => {
-      eventSource.close();
+      //eventSource.close();
     };
   }, [chatLog]);
 
