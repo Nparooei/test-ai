@@ -93,7 +93,7 @@ export default function Home() {
       setStreaming(true);
     } catch (err:any) {
       const errorText=`${(err && err.message)?err.message:'Received error from the server.'}`
-      insertParagraph(`Virtual Assistant:${errorText}`);
+      insertParagraph(`Virtual Assistant: ${errorText}`);
       setError(errorText);
       setTimeout(() => setError(null), 3000);
     } finally {
