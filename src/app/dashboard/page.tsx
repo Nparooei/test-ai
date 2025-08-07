@@ -23,7 +23,7 @@ function decorate([node, path]: any) {
   const ranges: any[] = [];
   if (!Text.isText(node)) return ranges;
 
-  const tokens = ['User:', 'Bot:'];
+  const tokens = ['You:', 'Virtual Assistant:'];
   for (const token of tokens) {
     const parts = node.text.split(token);
     let offset = 0;
@@ -48,6 +48,9 @@ const initialValue: Descendant[] = [
     children: [{ text: '' }],
   },
 ];
+
+const chatUrl=process.env.NEXT_PUBLIC_CHAT_URL
+const streamUrl=process.env.NEXT_PUBLIC_STREAM_URL
 
 export default function Home() {
   const editor = useMemo(() => withReact(createEditor()), []);
@@ -80,17 +83,18 @@ export default function Home() {
     setLoading(true);
     setInput('');
     setStreamBuffer('');
-    insertParagraph(`User: ${trimmed}`);
+    insertParagraph(`You: ${trimmed}`);
 
     try {
-      const res = await fetch(`/api/chat?prompt=${encodeURIComponent(input)}`);
+      const res = await fetch(`${chatUrl}${encodeURIComponent(input)}`);
       const data = await res.json();
       const botReply = data.text || '[No response]';
-      insertParagraph(`Bot: ${botReply}`);
+      insertParagraph(`Virtual Assistant: ${botReply}`);
       setStreaming(true);
-    } catch {
-      insertParagraph('Bot: [error contacting server]');
-      setError('Failed to contact the server.');
+    } catch (err:any) {
+      const errorText=`${(err && err.message)?err.message:'Received error from the server.'}`
+      insertParagraph(`Virtual Assistant:${errorText}`);
+      setError(errorText);
       setTimeout(() => setError(null), 3000);
     } finally {
       setLoading(false);
@@ -98,7 +102,7 @@ export default function Home() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!loading && !streaming && e.key === 'Enter' && !e.shiftKey) {
+    if (!loading && e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
@@ -107,7 +111,7 @@ export default function Home() {
   useEffect(() => {
     if (!streaming) return;
 
-    const eventSource = new EventSource('/api/observation/stream');
+    const eventSource = new EventSource(`${streamUrl}`);
     let accumulated = '';
 
     const handleMessage = (event: MessageEvent) => {
@@ -156,7 +160,7 @@ export default function Home() {
           transition={{ duration: 0.4 }}
           className="w-full h-full flex"
         >
-          <div className={`flex flex-col pb-4 overflow-hidden transition-all duration-300 ${expanded ? 'w-[60%] mx-auto' : 'w-[30%] ml-4'}`}>
+          <div className={`flex flex-col pb-4 overflow-hidden transition-all duration-300 ${expanded ? 'w-[50%] mx-auto' : 'w-[30%] ml-4'}`}>
             <Slate key={renderKey} editor={editor} initialValue={value}>
               <Editable
                 decorate={decorate}
@@ -166,21 +170,24 @@ export default function Home() {
               />
             </Slate>
 
-            <textarea
-              placeholder="Ask me anything..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={loading || streaming}
-              className="mt-4 w-full h-20 p-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm font-mono bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none disabled:opacity-50"
-            />
+           <textarea
+  placeholder="Ask me anything..."
+  value={input}
+  onChange={(e) => setInput(e.target.value)}
+  onKeyDown={handleKeyDown}
+  className="mt-4 w-full h-20 p-2 rounded-md border border-gray-300 dark:border-gray-700 
+             text-sm font-mono bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
+             placeholder-gray-400 dark:placeholder-gray-500 resize-none disabled:opacity-50 
+             focus:outline-none focus:border-gray-500 focus:ring-0 focus:ring-gray-0"
+/>
+
 
             <button
               onClick={handleSubmit}
-              disabled={loading || streaming}
+              disabled={loading}
               className="mt-2 h-12 w-full bg-blue-600 text-white hover:bg-blue-700 rounded-md font-medium text-sm flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {(loading || streaming) ? (
+              {(loading) ? (
                 <svg className="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
@@ -207,7 +214,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 border rounded-md text-sm whitespace-pre-wrap overflow-auto">
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md border border-gray-300 dark:border-gray-700 text-sm whitespace-pre-wrap overflow-auto">
                 {streamBuffer || 'Your response will appear here...'}
               </div>
             </div>
@@ -216,7 +223,7 @@ export default function Home() {
           
         </motion.div>
         {expanded && (
-            <div className="absolute top-[10px]  right-[20%]">
+            <div className="absolute top-[10px]  right-[25%]">
               <button
                 className="text-black dark:text-white rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
                 onClick={() => {
